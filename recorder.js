@@ -1,6 +1,10 @@
 ;(function(){
 	class Recorder{
-		constructor(type){
+		constructor(params, type){
+			if(params){
+				this.__types = params;
+			}
+
 			if(type){
 				this.__setType(type);
 			}
@@ -96,6 +100,7 @@
 
 		setParams(params){
 			this.__types = params;
+			return this;
 		}
 
 		__setType(type){
@@ -108,9 +113,9 @@
 			
 			this.type = type;
 			var t = type.match(/^([a-z]+)\//);
-			if(t){
+			if(t && !this.types){
 				this.__types = {};
-				this.__types[t[1]] = true;
+				this.__types[t[1]] = true;	
 			}
 		}
 
@@ -122,6 +127,7 @@
 			this.__listeners[type].push(fun);
 		}
 	}
+	Recorder.prototype.on = Recorder.prototype.addEventListener;
 	window.Recorder = Recorder;
 
 })();
