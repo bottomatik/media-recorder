@@ -25,9 +25,26 @@
 
 			var parent = this;
 
-			navigator.mediaDevices.getUserMedia(this.__types).
-			then(function(stream){
+			if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+				navigator.mediaDevices.getUserMedia(this.__types).then(cbstream);
+			} else {
+				var md = null;
+				if(navigator.getUserMedia){
+					md = navigator.getUserMedia;
+				} else if(navigator.webkitGetUserMedia){
+					md = navigator.webkitGetUserMedia;
+				} else if(navigator.mozGetUserMedia){
+					md = navigator.moz.getUserMedia;
+				} else {
+					throw new Error('Impossible to get user media: NOT SUPPORTED');
+				}
+
+				md(this.__types, cbstream, (e)=>{console.error('Error getting user media', e)});
+			}
+
+			function cbstream(stream){
 				parent.__blobs = [];
+				parent.__currentStream = stream;
 				if(parent.type){
 					parent.recorder = new MediaRecorder(stream, {mediaType:parent.type});
 				} else {
@@ -66,12 +83,15 @@
 						}
 					}
 				}
-			});
+			}
 		}
 
 		stop(){
 			if(!this.recorder){
 				throw new Error('No recorder attached. You need to call recorder#record() first');
+			}
+			for(var track of this.__currentStream.getTracks()){
+				track.stop();
 			}
 			this.recorder.stop();
 		}
